@@ -107,173 +107,118 @@ local function maybeDelay()
     end
 end
 
---// ================= GUI (Modern / Rounded + Sliders + Presets) =================
-local gui = Instance.new("ScreenGui", LP.PlayerGui)
-gui.Name = "CombatArenaLegitUI"
+--// ================= GUI (FIXED Mobile Menu) =================
+local gui = Instance.new("ScreenGui")
+gui.Name = "CombatArenaMenu"
 gui.ResetOnSpawn = false
+gui.Parent = LP:WaitForChild("PlayerGui")
 
--- Main panel
+-- Main Menu Frame (SAFE SIZE FOR MOBILE)
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 320, 0, 360)
-frame.Position = UDim2.new(0.5, -160, 0.5, -180)
+frame.Size = UDim2.fromOffset(300, 260)
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.Position = UDim2.fromScale(0.5, 0.5)
 frame.BackgroundColor3 = Color3.fromRGB(18,18,26)
 frame.Active = true
 frame.Draggable = true
 frame.Visible = true
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0,18)
-
-local stroke = Instance.new("UIStroke", frame)
-stroke.Thickness = 2
-stroke.Color = Color3.fromRGB(70,70,95)
+frame.ZIndex = 50
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,14)
 
 -- Header
 local header = Instance.new("Frame", frame)
-header.Size = UDim2.new(1,0,0,46)
+header.Size = UDim2.fromOffset(300, 42)
+header.Position = UDim2.fromOffset(0, 0)
 header.BackgroundColor3 = Color3.fromRGB(28,28,40)
-header.BorderSizePixel = 0
-Instance.new("UICorner", header).CornerRadius = UDim.new(0,18)
+header.ZIndex = 51
+Instance.new("UICorner", header).CornerRadius = UDim.new(0,14)
 
 local title = Instance.new("TextLabel", header)
-title.Size = UDim2.new(1,-60,1,0)
-title.Position = UDim2.new(0,18,0,0)
-title.Text = "🎯 Combat Arena LEGIT++"
-title.Font = Enum.Font.GothamBold
-title.TextSize = 16
-title.TextColor3 = Color3.new(1,1,1)
+title.Size = UDim2.new(1,-42,1,0)
+title.Position = UDim2.fromOffset(12,0)
 title.BackgroundTransparency = 1
+title.Text = "Combat Arena LEGIT++"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 14
+title.TextColor3 = Color3.new(1,1,1)
 title.TextXAlignment = Left
+title.ZIndex = 52
 
 local close = Instance.new("TextButton", header)
-close.Size = UDim2.new(0,34,0,34)
-close.Position = UDim2.new(1,-44,0.5,-17)
-close.Text = "✕"
+close.Size = UDim2.fromOffset(30,30)
+close.Position = UDim2.fromOffset(260,6)
+close.Text = "X"
 close.Font = Enum.Font.GothamBold
-close.TextSize = 16
-close.BackgroundColor3 = Color3.fromRGB(45,45,60)
+close.TextSize = 14
+close.BackgroundColor3 = Color3.fromRGB(60,60,80)
 close.TextColor3 = Color3.new(1,1,1)
+close.ZIndex = 52
 Instance.new("UICorner", close).CornerRadius = UDim.new(1,0)
 
--- Status
-local status = Instance.new("TextLabel", frame)
-status.Size = UDim2.new(1,-32,0,26)
-status.Position = UDim2.new(0,16,0,52)
-status.Text = "Preset: NORMAL"
-status.Font = Enum.Font.GothamBold
-status.TextSize = 13
-status.TextColor3 = Color3.fromRGB(120,255,120)
-status.BackgroundTransparency = 1
-status.TextXAlignment = Left
-
--- Button helper
-local function makeBtn(text,y)
+-- Button helper (TOUCH SAFE)
+local function makeBtn(text, y)
     local b = Instance.new("TextButton", frame)
-    b.Size = UDim2.new(1,-32,0,38)
-    b.Position = UDim2.new(0,16,0,y)
+    b.Size = UDim2.fromOffset(260, 36)
+    b.Position = UDim2.fromOffset(20, y)
     b.BackgroundColor3 = Color3.fromRGB(38,38,54)
     b.TextColor3 = Color3.new(1,1,1)
     b.Font = Enum.Font.GothamSemibold
-    b.TextSize = 14
+    b.TextSize = 13
     b.Text = text
-    Instance.new("UICorner", b).CornerRadius = UDim.new(0,12)
+    b.ZIndex = 52
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
     return b
 end
 
--- Slider helper
-local function makeSlider(labelText, y, min, max, default, callback)
-    local lbl = Instance.new("TextLabel", frame)
-    lbl.Size = UDim2.new(1,-32,0,20)
-    lbl.Position = UDim2.new(0,16,0,y)
-    lbl.Text = labelText..": "..default
-    lbl.Font = Enum.Font.GothamMedium
-    lbl.TextSize = 13
-    lbl.TextColor3 = Color3.fromRGB(200,200,220)
-    lbl.BackgroundTransparency = 1
-    lbl.TextXAlignment = Left
+-- Buttons
+local espBtn = makeBtn("ESP : ON", 56)
+local aimBtn = makeBtn("AIM : ON", 100)
+local fovBtn = makeBtn("FOV Circle : ON", 144)
 
-    local bar = Instance.new("Frame", frame)
-    bar.Size = UDim2.new(1,-32,0,10)
-    bar.Position = UDim2.new(0,16,0,y+22)
-    bar.BackgroundColor3 = Color3.fromRGB(45,45,60)
-    Instance.new("UICorner", bar).CornerRadius = UDim.new(1,0)
-
-    local fill = Instance.new("Frame", bar)
-    fill.Size = UDim2.new((default-min)/(max-min),0,1,0)
-    fill.BackgroundColor3 = Color3.fromRGB(255,120,120)
-    Instance.new("UICorner", fill).CornerRadius = UDim.new(1,0)
-
-    local dragging = false
-    bar.InputBegan:Connect(function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-        end
-    end)
-    UserInputService.InputEnded:Connect(function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
-    end)
-    UserInputService.InputChanged:Connect(function(i)
-        if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-            local x = math.clamp((i.Position.X - bar.AbsolutePosition.X)/bar.AbsoluteSize.X,0,1)
-            fill.Size = UDim2.new(x,0,1,0)
-            local val = math.floor(min + (max-min)*x)
-            lbl.Text = labelText..": "..val
-            callback(val)
-        end
-    end)
-end
-
--- Preset button
-local presetBtn = makeBtn("Preset: NORMAL", 86)
-
-presetBtn.MouseButton1Click:Connect(function()
-    if cfg.PRESET == "SAFE" then
-        cfg.PRESET = "NORMAL"
-        cfg.FOV_BASE = 200
-        cfg.SMOOTH_MIN, cfg.SMOOTH_MAX = 0.16, 0.24
-        cfg.MISS_CHANCE = 0.08
-    elseif cfg.PRESET == "NORMAL" then
-        cfg.PRESET = "RAGE"
-        cfg.FOV_BASE = 260
-        cfg.SMOOTH_MIN, cfg.SMOOTH_MAX = 0.10, 0.18
-        cfg.MISS_CHANCE = 0.03
-    else
-        cfg.PRESET = "SAFE"
-        cfg.FOV_BASE = 160
-        cfg.SMOOTH_MIN, cfg.SMOOTH_MAX = 0.18, 0.28
-        cfg.MISS_CHANCE = 0.12
-    end
-    presetBtn.Text = "Preset: "..cfg.PRESET
-    status.Text = "Preset: "..cfg.PRESET
+-- Button logic (Activated = mobile safe)
+espBtn.Activated:Connect(function()
+    cfg.ESP = not cfg.ESP
+    espBtn.Text = cfg.ESP and "ESP : ON" or "ESP : OFF"
 end)
 
--- Sliders
-makeSlider("FOV", 132, 120, 300, cfg.FOV_BASE, function(v) cfg.FOV_BASE = v end)
-makeSlider("Smooth", 176, 5, 30, math.floor(cfg.SMOOTH_MIN*100), function(v)
-    cfg.SMOOTH_MIN = v/100
-    cfg.SMOOTH_MAX = (v+8)/100
+aimBtn.Activated:Connect(function()
+    cfg.AIM = not cfg.AIM
+    aimBtn.Text = cfg.AIM and "AIM : ON" or "AIM : OFF"
 end)
 
-local hide = makeBtn("Hide Menu", 226)
+fovBtn.Activated:Connect(function()
+    cfg.FOV_VISIBLE = not cfg.FOV_VISIBLE
+    fovBtn.Text = cfg.FOV_VISIBLE and "FOV Circle : ON" or "FOV Circle : OFF"
+end)
 
--- Mini reopen button
+-- Close menu
+close.Activated:Connect(function()
+    frame.Visible = false
+end)
+
+-- Mini reopen icon
 local mini = Instance.new("TextButton", gui)
-mini.Size = UDim2.new(0,54,0,54)
-mini.Position = UDim2.new(0,14,0.5,-27)
-mini.Text = "🎯"
+mini.Size = UDim2.fromOffset(52,52)
+mini.AnchorPoint = Vector2.new(0,0.5)
+mini.Position = UDim2.fromScale(0.02, 0.5)
+mini.Text = "MENU"
 mini.Font = Enum.Font.GothamBold
-mini.TextSize = 22
+mini.TextSize = 12
 mini.BackgroundColor3 = Color3.fromRGB(30,30,44)
 mini.TextColor3 = Color3.new(1,1,1)
+mini.ZIndex = 100
 Instance.new("UICorner", mini).CornerRadius = UDim.new(1,0)
 
--- UI logic
-close.MouseButton1Click:Connect(function() frame.Visible = false end)
-hide.MouseButton1Click:Connect(function() frame.Visible = false end)
-mini.MouseButton1Click:Connect(function() frame.Visible = true end)
+mini.Activated:Connect(function()
+    frame.Visible = true
+end)
 
--- default preset
-cfg.PRESET = "NORMAL"
+-- Force ZIndex for safety
+for _,v in pairs(gui:GetDescendants()) do
+    if v:IsA("GuiObject") then
+        v.ZIndex = v.ZIndex > 0 and v.ZIndex or 50
+    end
+end
 
 --// ================= FOV =================
 local fov = Instance.new("Frame", gui)
